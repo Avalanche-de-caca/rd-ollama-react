@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 function App() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [aiResponse, setAiResponse] = useState('');
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
 
   // Fonction pour générer une réponse via fetch
-  const generateLocalOllamaResponse = async (prompt) => {
+  const generateLocalOllamaResponse = async (prompt: string) => {
     try {
       const response = await fetch('http://localhost:11434/api/generate', {
         method: 'POST',
@@ -37,13 +37,15 @@ function App() {
   // Fonction pour initialiser la reconnaissance vocale
   const startSpeechRecognition = () => {
     // Réinitialiser les erreurs précédentes
-    setError(null);
+    setError('');
 
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
       console.log('Reconnaissance vocale supportée');
       
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      // @ts-expect-error any
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;  
       const recognition = new SpeechRecognition();
+      
       
       recognition.lang = 'fr-FR';
       recognition.interimResults = false;
@@ -53,25 +55,27 @@ function App() {
         setIsListening(true);
         console.log('Écoute en cours...');
       };
-
+    
+      // @ts-expect-error any
       recognition.onresult = async (event) => {
-        const speechResult = event.results[0][0].transcript;
+        const speechResult: string = event.results[0][0].transcript;
         setTranscript(speechResult);
         console.log('Transcription:', speechResult);
 
         try {
-          const aiText = await generateLocalOllamaResponse(speechResult);
+          const aiText: string = await generateLocalOllamaResponse(speechResult);
           setAiResponse(aiText);
           console.log('Réponse IA:', aiText);
 
           // Synthèse vocale
           speakText(aiText);
-        } catch (error) {
+        } catch (error: unknown) {
           setError('Impossible de contacter le serveur Ollama. Vérifiez qu\'il est en cours d\'exécution.');
           console.error('Erreur de traitement:', error);
         }
       };
 
+      // @ts-expect-error any
       recognition.onerror = (event) => {
         console.error('Erreur de reconnaissance vocale:', event.error);
         setError(`Erreur de reconnaissance vocale: ${event.error}`);
@@ -89,7 +93,7 @@ function App() {
   };
 
   // Fonction pour la synthèse vocale
-  const speakText = (text) => {
+  const speakText = (text: string) => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'fr-FR';
