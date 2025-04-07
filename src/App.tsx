@@ -17,7 +17,8 @@ function App() {
         body: JSON.stringify({
           model: 'gemma3:1b',
           prompt: prompt,
-          stream: false
+          system: 'Tu es un robot qui adore les saucisses !',
+          stream: false,
         })
       });
 
